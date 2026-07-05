@@ -1,0 +1,45 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # يسمح بتشغيل يدوي من GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. استنزل الكود
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. ثبّت Java
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. ثبّت Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      # 4. حمّل dependencies
+      - name: Get dependencies
+        run: flutter pub get
+
+      # 5. ابنِ الـ APK
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # 6. ارفع الـ APK كـ artifact تقدر تحمّله
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: royal-match-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
