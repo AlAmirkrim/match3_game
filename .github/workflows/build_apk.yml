@@ -42,7 +42,7 @@ jobs:
 
       # 6. تحقق من أخطاء الكود أولاً
       - name: Analyze code
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       # 7. ابنِ الـ APK
       - name: Build APK

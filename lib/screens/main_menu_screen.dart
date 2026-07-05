@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../levels/level_progress.dart';
 import 'level_map_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {

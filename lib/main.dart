@@ -31,7 +31,6 @@ class RoyalMatchApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
-        fontFamily: 'GameFont',
       ),
       home: const MainMenuScreen(),
     );
