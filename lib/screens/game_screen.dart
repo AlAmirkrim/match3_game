@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game_controller.dart';
 import '../levels/level_config.dart';
 import '../levels/level_progress.dart';
-import '../widgets/animated_board_wrapper.dart';
+import '../widgets/simple_board.dart';
 import '../widgets/hud_widget.dart';
 import 'level_complete_screen.dart';
 import 'game_over_screen.dart';
@@ -68,8 +67,8 @@ class _GameScreenState extends State<GameScreen> {
                   Expanded(
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: AnimatedBoardWrapper(),
+                        padding: const EdgeInsets.all(16),
+                        child: const SimpleBoard(),
                       ),
                     ),
                   ),
@@ -139,10 +138,7 @@ class _GameScreenState extends State<GameScreen> {
         style: const TextStyle(color: Colors.amber, fontSize: 13),
         textAlign: TextAlign.center,
       ),
-    )
-        .animate()
-        .fadeIn(duration: 500.ms)
-        .slideY(begin: -0.3, end: 0, duration: 400.ms);
+    );
   }
 
   // ── Booster bar ───────────────────────────────────────────────────────────

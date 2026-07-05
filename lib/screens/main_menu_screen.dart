@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'level_map_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
@@ -20,16 +19,12 @@ class MainMenuScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              // Castle illustration placeholder
               _buildCastle(),
               const SizedBox(height: 16),
-              // Title
               _buildTitle(),
               const Spacer(),
-              // Play button
               _buildPlayButton(context),
               const SizedBox(height: 16),
-              // Settings row
               _buildBottomRow(context),
               const SizedBox(height: 32),
             ],
@@ -47,8 +42,6 @@ class MainMenuScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
           colors: [Color(0xFFD4AF37), Color(0xFFF5D060)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
         boxShadow: const [
           BoxShadow(color: Colors.black38, blurRadius: 20, offset: Offset(0, 8)),
@@ -57,10 +50,7 @@ class MainMenuScreen extends StatelessWidget {
       child: const Center(
         child: Text('🏰', style: TextStyle(fontSize: 100)),
       ),
-    )
-        .animate()
-        .fadeIn(duration: 600.ms)
-        .slideY(begin: -0.3, end: 0, duration: 600.ms, curve: Curves.elasticOut);
+    );
   }
 
   Widget _buildTitle() {
@@ -91,10 +81,7 @@ class MainMenuScreen extends StatelessWidget {
           ),
         ),
       ],
-    )
-        .animate()
-        .fadeIn(delay: 200.ms, duration: 500.ms)
-        .scaleXY(begin: 0.8, end: 1.0, delay: 200.ms, duration: 500.ms, curve: Curves.elasticOut);
+    );
   }
 
   Widget _buildPlayButton(BuildContext context) {
@@ -109,11 +96,7 @@ class MainMenuScreen extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(32),
           boxShadow: const [
-            BoxShadow(
-              color: Color(0x88FFA000),
-              blurRadius: 20,
-              offset: Offset(0, 6),
-            ),
+            BoxShadow(color: Color(0x88FFA000), blurRadius: 20, offset: Offset(0, 6)),
           ],
         ),
         child: const Center(
@@ -128,9 +111,7 @@ class MainMenuScreen extends StatelessWidget {
           ),
         ),
       ),
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(begin: 1.0, end: 1.04, duration: 900.ms, curve: Curves.easeInOut);
+    );
   }
 
   Widget _buildBottomRow(BuildContext context) {
@@ -143,7 +124,7 @@ class MainMenuScreen extends StatelessWidget {
         const SizedBox(width: 24),
         _iconButton(Icons.info_outline, 'About', () => _showAbout(context)),
       ],
-    ).animate().fadeIn(delay: 400.ms, duration: 400.ms);
+    );
   }
 
   Widget _iconButton(IconData icon, String tooltip, VoidCallback onTap) {
@@ -167,14 +148,9 @@ class MainMenuScreen extends StatelessWidget {
   }
 
   void _openLevelMap(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LevelMapScreen(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => const LevelMapScreen(),
+    ));
   }
 
   void _showAbout(BuildContext context) {

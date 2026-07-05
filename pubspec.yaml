@@ -1,5 +1,5 @@
 name: match3_game
-description: A Match-3 puzzle game inspired by Royal Match
+description: Royal Match - A production-ready Match-3 puzzle game
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,8 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flame: ^1.18.0
-  flutter_animate: ^4.5.0
   shared_preferences: ^2.2.3
   provider: ^6.1.2
 
