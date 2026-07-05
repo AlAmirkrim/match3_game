@@ -5,10 +5,6 @@ import 'board_widget.dart';
 import 'combo_banner.dart';
 import 'score_pop_widget.dart';
 
-/// Wraps the BoardWidget and layers on top:
-///   • Score pop-up labels after each move
-///   • Combo banner when chain ≥ 2
-///   • Invalid-swap shake animation
 class AnimatedBoardWrapper extends StatefulWidget {
   const AnimatedBoardWrapper({super.key});
 
@@ -18,14 +14,10 @@ class AnimatedBoardWrapper extends StatefulWidget {
 
 class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
     with SingleTickerProviderStateMixin {
-  // Combo overlay
   int _comboMultiplier = 0;
   bool _showCombo = false;
-
-  // Score pops
   final List<_ScorePop> _scorePops = [];
 
-  // Shake controller for invalid swap
   late final AnimationController _shakeCtrl;
   late final Animation<double> _shakeAnim;
 
@@ -33,9 +25,7 @@ class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
   void initState() {
     super.initState();
     _shakeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
+        vsync: this, duration: const Duration(milliseconds: 400));
     _shakeAnim = TweenSequence([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: -8.0), weight: 1),
       TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 2),
@@ -59,7 +49,6 @@ class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Board with optional shake
             AnimatedBuilder(
               animation: _shakeAnim,
               builder: (_, child) => Transform.translate(
@@ -68,16 +57,12 @@ class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
               ),
               child: const BoardWidget(),
             ),
-
-            // Score pops
             ..._scorePops.map((pop) => ScorePopWidget(
                   key: pop.key,
                   points: pop.points,
                   position: pop.position,
                   onDone: () => setState(() => _scorePops.remove(pop)),
                 )),
-
-            // Combo banner
             if (_showCombo)
               ComboBanner(
                 multiplier: _comboMultiplier,
@@ -93,27 +78,22 @@ class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
     final result = ctrl.lastMoveResult;
     if (result == null) return;
 
-    // Detect invalid swap (no match) → shake
     if (!result.hadMatches) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _shakeCtrl.forward(from: 0);
-      });
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _shakeCtrl.forward(from: 0));
       return;
     }
 
-    // Chain combos
-    final chainLength = result.steps.length;
-    if (chainLength >= 2) {
+    if (result.steps.length >= 2) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {
-          _comboMultiplier = chainLength;
+          _comboMultiplier = result.steps.length;
           _showCombo = true;
         });
       });
     }
 
-    // Score pop — show total at center of screen
     if (result.totalScore > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -122,15 +102,13 @@ class _AnimatedBoardWrapperState extends State<AnimatedBoardWrapper>
         final center = box.size.center(Offset.zero);
         setState(() {
           _scorePops.add(_ScorePop(
-            key: UniqueKey(),
-            points: result.totalScore,
-            position: center,
-          ));
+              key: UniqueKey(),
+              points: result.totalScore,
+              position: center));
         });
       });
     }
 
-    // Clear so we don't re-process
     ctrl.lastMoveResult = null;
   }
 }
