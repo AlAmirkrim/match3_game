@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/grid.dart';
 import '../models/tile.dart';
@@ -6,12 +7,7 @@ import '../logic/cascade_solver.dart';
 import '../logic/match_finder.dart';
 import '../levels/level_config.dart';
 
-enum GamePhase {
-  idle,          // Waiting for player input
-  animating,     // Playing match/fall animations
-  levelComplete,
-  gameOver,
-}
+enum GamePhase { idle, animating, levelComplete, gameOver }
 
 class GameController extends ChangeNotifier {
   final LevelConfig config;
@@ -19,46 +15,29 @@ class GameController extends ChangeNotifier {
   late final CascadeSolver _solver;
   late final MatchFinder _finder;
 
-  // Selection state
   Tile? selectedTile;
-
-  // Scoring & moves
   int score = 0;
   int movesLeft;
   int get targetScore => config.targetScore;
-
-  // Collection goals (deep copy so we can track progress)
   late final List<CollectGoal> collectGoals;
-
-  // Phase
   GamePhase phase = GamePhase.idle;
-
-  // Last cascade result (used by UI to drive animations)
   MoveResult? lastMoveResult;
-
-  // Hint
   ({int r1, int c1, int r2, int c2})? hint;
 
   GameController({required this.config, Grid? existingGrid})
-      : grid = existingGrid ??
-            Grid(rows: config.gridRows, cols: config.gridCols),
+      : grid = existingGrid ?? Grid(rows: config.gridRows, cols: config.gridCols),
         movesLeft = config.moves {
     _solver = CascadeSolver(grid);
     _finder = MatchFinder(grid);
-    // Deep-copy collect goals so we can mutate them
     collectGoals = config.collectGoals
-        .map((g) => CollectGoal(
-              tileType: g.tileType,
-              required: g.required,
-              collected: 0,
-            ))
-        .toList();  }
+        .map((g) => CollectGoal(tileType: g.tileType, required: g.required))
+        .toList();
+  }
 
-  // ── Input handling ─────────────────────────────────────────────────────────
+  // ── Input ──────────────────────────────────────────────────────────────────
 
   void onTileTap(int row, int col) {
     if (phase != GamePhase.idle) return;
-
     final tapped = grid.get(row, col);
 
     if (tapped.isSpecial && selectedTile == null) {
@@ -107,14 +86,9 @@ class GameController extends ChangeNotifier {
   // ── Move logic ─────────────────────────────────────────────────────────────
 
   void _attemptSwap(int r1, int c1, int r2, int c2) {
-    phase = GamePhase.animating;
-    hint = null;
-    notifyListeners();
-
     final result = _solver.trySwap(r1, c1, r2, c2);
-
     if (result == null) {
-      phase = GamePhase.idle;
+      // Invalid swap — just notify UI to show shake, stay idle
       notifyListeners();
       return;
     }
@@ -123,25 +97,41 @@ class GameController extends ChangeNotifier {
     score += result.totalScore;
     movesLeft--;
     _updateCollectGoals(result);
+    hint = null;
 
     notifyListeners();
+
+    // Auto-complete animation after short delay
+    _scheduleAnimationComplete();
   }
 
   void _activateSpecial(int row, int col) {
-    phase = GamePhase.animating;
-    hint = null;
-    notifyListeners();
-
     final result = _solver.activateSpecial(row, col);
     lastMoveResult = result;
     score += result.totalScore;
     movesLeft--;
     _updateCollectGoals(result);
-
+    hint = null;
     notifyListeners();
+    _scheduleAnimationComplete();
   }
 
-  /// Update collect goals from all cleared tiles in the move result
+  /// Waits for animations then checks win/lose condition.
+  void _scheduleAnimationComplete() {
+    // 600ms covers match pop + fall animations
+    Timer(const Duration(milliseconds: 600), () {
+      if (_isWinConditionMet()) {
+        phase = GamePhase.levelComplete;
+      } else if (movesLeft <= 0) {
+        phase = GamePhase.gameOver;
+      } else {
+        phase = GamePhase.idle;
+        if (_finder.findHint() == null) _shuffleBoard();
+      }
+      notifyListeners();
+    });
+  }
+
   void _updateCollectGoals(MoveResult result) {
     if (collectGoals.isEmpty) return;
     for (final step in result.steps) {
@@ -155,19 +145,6 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  /// Called by the board widget after all step animations finish.
-  void onAnimationComplete() {
-    if (_isWinConditionMet()) {
-      phase = GamePhase.levelComplete;
-    } else if (movesLeft <= 0) {
-      phase = GamePhase.gameOver;
-    } else {
-      phase = GamePhase.idle;
-      _checkDeadlock();
-    }
-    notifyListeners();
-  }
-
   bool _isWinConditionMet() {
     switch (config.goalType) {
       case GoalType.score:
@@ -175,11 +152,11 @@ class GameController extends ChangeNotifier {
       case GoalType.collect:
         return collectGoals.every((g) => g.isComplete);
       case GoalType.clear:
-        return score >= config.targetScore; // fallback
+        return score >= config.targetScore;
     }
   }
 
-  // ── Hint & deadlock ────────────────────────────────────────────────────────
+  // ── Hint & shuffle ─────────────────────────────────────────────────────────
 
   void requestHint() {
     if (phase != GamePhase.idle) return;
@@ -187,24 +164,18 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _checkDeadlock() {
-    if (_finder.findHint() == null) _shuffleBoard();
-  }
-
   void _shuffleBoard() {
     final types = <TileType>[];
     for (int r = 0; r < grid.rows; r++) {
       for (int c = 0; c < grid.cols; c++) {
-        final t = grid.get(r, c);
-        if (t.isNormal) types.add(t.type);
+        if (grid.get(r, c).isNormal) types.add(grid.get(r, c).type);
       }
     }
     types.shuffle();
     int idx = 0;
     for (int r = 0; r < grid.rows; r++) {
       for (int c = 0; c < grid.cols; c++) {
-        final t = grid.get(r, c);
-        if (t.isNormal) grid.cells[r][c].type = types[idx++];
+        if (grid.get(r, c).isNormal) grid.cells[r][c].type = types[idx++];
       }
     }
     notifyListeners();
@@ -218,32 +189,21 @@ class GameController extends ChangeNotifier {
     _activateSpecial(row, col);
   }
 
-  // ── Computed properties ────────────────────────────────────────────────────
+  void addMoves(int count) {
+    movesLeft += count;
+    notifyListeners();
+  }
+
+  // ── Computed ───────────────────────────────────────────────────────────────
 
   bool get isComplete => phase == GamePhase.levelComplete;
   bool get isGameOver => phase == GamePhase.gameOver;
-
-  double get scoreProgress =>
-      (score / config.targetScore).clamp(0.0, 1.0);
+  double get scoreProgress => (score / config.targetScore).clamp(0.0, 1.0);
 
   int get stars {
     if (score >= config.targetScore * 1.5) return 3;
     if (score >= config.targetScore * 1.2) return 2;
     if (score >= config.targetScore) return 1;
     return 0;
-  }
-
-  String get goalDescription {
-    switch (config.goalType) {
-      case GoalType.score:
-        return 'Reach $targetScore pts';
-      case GoalType.collect:
-        final parts = collectGoals
-            .map((g) => '${g.remaining}× ${g.tileType.emoji}')
-            .join('  ');
-        return parts;
-      case GoalType.clear:
-        return 'Clear all tiles';
-    }
   }
 }

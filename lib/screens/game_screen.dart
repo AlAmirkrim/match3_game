@@ -166,10 +166,7 @@ class _GameScreenState extends State<GameScreen> {
         _BoosterButton(
             emoji: '➕',
             label: '+5 Moves',
-            onTap: () {
-              ctrl.movesLeft += 5;
-              ctrl.notifyListeners();
-            }),
+            onTap: () => ctrl.addMoves(5)),
       ],
     );
   }
