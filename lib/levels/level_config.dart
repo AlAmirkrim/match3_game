@@ -19,6 +19,12 @@ class CollectGoal {
     this.collected = 0,
   });
 
+  // const-friendly factory used in static level definitions
+  const CollectGoal.fixed({
+    required this.tileType,
+    required this.required,
+  }) : collected = 0;
+
   bool get isComplete => collected >= required;
   int get remaining => (required - collected).clamp(0, required);
 
@@ -69,8 +75,8 @@ class LevelRegistry {
       targetScore: 1500,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal(tileType: TileType.red, required: 15, collected: 0),
-        CollectGoal(tileType: TileType.yellow, required: 10, collected: 0),
+        CollectGoal.fixed(tileType: TileType.red, required: 15),
+        CollectGoal.fixed(tileType: TileType.yellow, required: 10),
       ],
       backgroundAsset: 'assets/images/bg_dungeon.png',
     ),
@@ -87,8 +93,8 @@ class LevelRegistry {
       targetScore: 2500,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal(tileType: TileType.green, required: 20, collected: 0),
-        CollectGoal(tileType: TileType.blue, required: 15, collected: 0),
+        CollectGoal.fixed(tileType: TileType.green, required: 20),
+        CollectGoal.fixed(tileType: TileType.blue, required: 15),
       ],
       backgroundAsset: 'assets/images/bg_castle.png',
     ),
@@ -114,7 +120,7 @@ class LevelRegistry {
       targetScore: 4000,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal(tileType: TileType.purple, required: 25, collected: 0),
+        CollectGoal.fixed(tileType: TileType.purple, required: 25),
       ],
       backgroundAsset: 'assets/images/bg_tower.png',
     ),
@@ -131,9 +137,9 @@ class LevelRegistry {
       targetScore: 5000,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal(tileType: TileType.red, required: 20, collected: 0),
-        CollectGoal(tileType: TileType.yellow, required: 20, collected: 0),
-        CollectGoal(tileType: TileType.blue, required: 20, collected: 0),
+        CollectGoal.fixed(tileType: TileType.red, required: 20),
+        CollectGoal.fixed(tileType: TileType.yellow, required: 20),
+        CollectGoal.fixed(tileType: TileType.blue, required: 20),
       ],
       backgroundAsset: 'assets/images/bg_tower.png',
     ),

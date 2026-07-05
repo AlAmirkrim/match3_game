@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../game/game_controller.dart';
 import '../levels/level_config.dart';
+import '../models/tile_type.dart';
 
 class HudWidget extends StatelessWidget {
   const HudWidget({super.key});

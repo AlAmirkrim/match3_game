@@ -52,8 +52,7 @@ class GameController extends ChangeNotifier {
               required: g.required,
               collected: 0,
             ))
-        .toList();
-  }
+        .toList();  }
 
   // ── Input handling ─────────────────────────────────────────────────────────
 
