@@ -1,10 +1,9 @@
 import '../models/tile_type.dart';
 
-/// Defines the win condition type for a level
 enum GoalType {
-  score,        // Reach target score
-  collect,      // Collect specific tile types
-  clear,        // Clear all tiles in marked cells
+  score,
+  collect,
+  clear,
 }
 
 /// A single collection goal (e.g. collect 20 red tiles)
@@ -19,17 +18,8 @@ class CollectGoal {
     this.collected = 0,
   });
 
-  // const-friendly factory used in static level definitions
-  const CollectGoal.fixed({
-    required this.tileType,
-    required this.required,
-  }) : collected = 0;
-
   bool get isComplete => collected >= required;
   int get remaining => (required - collected).clamp(0, required);
-
-  CollectGoal copyWith({int? collected}) =>
-      CollectGoal(tileType: tileType, required: required, collected: collected ?? this.collected);
 }
 
 /// Full configuration for one level
@@ -38,13 +28,13 @@ class LevelConfig {
   final int moves;
   final int targetScore;
   final GoalType goalType;
-  final List<CollectGoal> collectGoals; // used when goalType == collect
+  final List<CollectGoal> collectGoals;
   final int gridRows;
   final int gridCols;
-  final String? storyText;       // Story blurb shown before level
-  final String? backgroundAsset; // asset path for background
+  final String? storyText;
+  final String? backgroundAsset;
 
-  const LevelConfig({
+  LevelConfig({
     required this.levelNumber,
     required this.moves,
     required this.targetScore,
@@ -57,10 +47,9 @@ class LevelConfig {
   });
 }
 
-/// All levels in the game
+/// All levels in the game — نستخدم getter بدل static const عشان CollectGoal مش const
 class LevelRegistry {
-  static const List<LevelConfig> levels = [
-    // ── World 1 ──────────────────────────────────────────────────────────────
+  static List<LevelConfig> get levels => [
     LevelConfig(
       levelNumber: 1,
       moves: 25,
@@ -75,8 +64,8 @@ class LevelRegistry {
       targetScore: 1500,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal.fixed(tileType: TileType.red, required: 15),
-        CollectGoal.fixed(tileType: TileType.yellow, required: 10),
+        CollectGoal(tileType: TileType.red, required: 15),
+        CollectGoal(tileType: TileType.yellow, required: 10),
       ],
       backgroundAsset: 'assets/images/bg_dungeon.png',
     ),
@@ -93,8 +82,8 @@ class LevelRegistry {
       targetScore: 2500,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal.fixed(tileType: TileType.green, required: 20),
-        CollectGoal.fixed(tileType: TileType.blue, required: 15),
+        CollectGoal(tileType: TileType.green, required: 20),
+        CollectGoal(tileType: TileType.blue, required: 15),
       ],
       backgroundAsset: 'assets/images/bg_castle.png',
     ),
@@ -106,7 +95,6 @@ class LevelRegistry {
       storyText: 'Clear the path to the royal garden!',
       backgroundAsset: 'assets/images/bg_garden.png',
     ),
-    // ── World 2 ──────────────────────────────────────────────────────────────
     LevelConfig(
       levelNumber: 6,
       moves: 18,
@@ -120,7 +108,7 @@ class LevelRegistry {
       targetScore: 4000,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal.fixed(tileType: TileType.purple, required: 25),
+        CollectGoal(tileType: TileType.purple, required: 25),
       ],
       backgroundAsset: 'assets/images/bg_tower.png',
     ),
@@ -137,9 +125,9 @@ class LevelRegistry {
       targetScore: 5000,
       goalType: GoalType.collect,
       collectGoals: [
-        CollectGoal.fixed(tileType: TileType.red, required: 20),
-        CollectGoal.fixed(tileType: TileType.yellow, required: 20),
-        CollectGoal.fixed(tileType: TileType.blue, required: 20),
+        CollectGoal(tileType: TileType.red, required: 20),
+        CollectGoal(tileType: TileType.yellow, required: 20),
+        CollectGoal(tileType: TileType.blue, required: 20),
       ],
       backgroundAsset: 'assets/images/bg_tower.png',
     ),
@@ -155,24 +143,17 @@ class LevelRegistry {
 
   static LevelConfig get(int levelNumber) {
     final idx = levelNumber - 1;
-    if (idx < 0 || idx >= levels.length) {
-      // Generate a procedural level for anything beyond defined levels
-      return _generateLevel(levelNumber);
-    }
-    return levels[idx];
-  }
-
-  static LevelConfig _generateLevel(int n) {
+    if (idx >= 0 && idx < levels.length) return levels[idx];
     return LevelConfig(
-      levelNumber: n,
-      moves: (20 - (n ~/ 5)).clamp(12, 25),
-      targetScore: 1000 + (n * 600),
-      goalType: n.isEven ? GoalType.collect : GoalType.score,
-      collectGoals: n.isEven
-          ? [CollectGoal(tileType: TileType.values[n % 5], required: 15 + n)]
+      levelNumber: levelNumber,
+      moves: (20 - (levelNumber ~/ 5)).clamp(12, 25),
+      targetScore: 1000 + (levelNumber * 600),
+      goalType: levelNumber.isEven ? GoalType.collect : GoalType.score,
+      collectGoals: levelNumber.isEven
+          ? [CollectGoal(tileType: TileType.values[levelNumber % 5], required: 15 + levelNumber)]
           : [],
     );
   }
 
-  static int get totalLevels => levels.length;
+  static int get totalLevels => 10;
 }

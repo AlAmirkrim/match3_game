@@ -40,7 +40,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # 6. ابنِ الـ APK
+      # 6. تحقق من أخطاء الكود أولاً
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos
+
+      # 7. ابنِ الـ APK
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
