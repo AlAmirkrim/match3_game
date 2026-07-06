@@ -3,55 +3,50 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # يسمح بتشغيل يدوي من GitHub
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. استنزل الكود
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. ثبّت Java
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. ثبّت Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           channel: 'stable'
 
-      # 4. أنشئ Android project كامل ثم انسخ كودنا فوقه
-      - name: Create Flutter project scaffold
+      # Back up our source, create a fresh complete project, restore our files
+      - name: Generate complete Flutter project
         run: |
-          flutter create --org com.royalmatch --project-name match3_game temp_scaffold
-          cp -r temp_scaffold/android ./android
-          cp -r temp_scaffold/ios ./ios
-          rm -rf temp_scaffold
+          cp -r lib /tmp/lib_backup
+          cp pubspec.yaml /tmp/pubspec_backup.yaml
+          flutter create --org com.royalmatch --project-name match3_game .
+          rm -rf lib
+          cp -r /tmp/lib_backup lib
+          cp /tmp/pubspec_backup.yaml pubspec.yaml
 
-      # 5. حمّل dependencies
       - name: Get dependencies
         run: flutter pub get
 
-      # 6. تحقق من أخطاء الكود أولاً
-      - name: Analyze code
+      - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      # 7. ابنِ الـ APK
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # 7. ارفع الـ APK كـ artifact تقدر تحمّله
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: royal-match-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
+          retention-days: 30
