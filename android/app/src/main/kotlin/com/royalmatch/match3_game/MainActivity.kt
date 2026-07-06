@@ -1,4 +1,4 @@
-package com.example.match3_game
+package com.royalmatch.match3_game
 
 import io.flutter.embedding.android.FlutterActivity
 
